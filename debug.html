@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Mode - Cek Data Asli</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>body{background:#111; color:#0f0; font-family: monospace; padding:20px;}</style>
+</head>
+<body>
+
+    <h1 class="text-xl font-bold border-b border-green-800 pb-2 mb-4">🕵️ DIAGNOSA DATABASE</h1>
+    
+    <div id="status" class="mb-4 text-yellow-400">Status: Menghubungkan ke Firebase...</div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Area Log -->
+        <div class="border border-green-900 p-4 rounded bg-black/50">
+            <h2 class="text-white font-bold mb-2">SYSTEM LOG:</h2>
+            <div id="console-log" class="text-xs space-y-1 h-64 overflow-y-auto text-gray-400"></div>
+        </div>
+
+        <!-- Area Data Preview -->
+        <div class="border border-green-900 p-4 rounded bg-black/50">
+            <h2 class="text-white font-bold mb-2">SAMPLE DATA (ITEM PERTAMA):</h2>
+            <pre id="data-preview" class="text-xs text-blue-300 overflow-x-auto whitespace-pre-wrap">Menunggu data...</pre>
+        </div>
+    </div>
+
+    <!-- Script Diagnosa -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        // CONFIG FIREBASE (Sesuai punya kamu)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDq6LjlUFRDm5CqGSqVLiJ9gItIyw71bAU",
+            authDomain: "db-katalog.firebaseapp.com",
+            projectId: "db-katalog",
+            storageBucket: "db-katalog.firebasestorage.app",
+            messagingSenderId: "597535674259",
+            appId: "1:597535674259:web:0577885c617f623bb82266"
+        };
+
+        const logArea = document.getElementById('console-log');
+        const statusArea = document.getElementById('status');
+        const previewArea = document.getElementById('data-preview');
+
+        function log(msg, color='text-gray-400') {
+            const div = document.createElement('div');
+            div.className = color;
+            div.innerText = `> ${msg}`;
+            logArea.appendChild(div);
+        }
+
+        async function runDiagnosa() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                const db = getFirestore(app);
+                log("Firebase App Initialized.", "text-green-500");
+
+                log("Mencoba membaca collection 'themes'...");
+                const querySnapshot = await getDocs(collection(db, "themes"));
+                
+                if (querySnapshot.empty) {
+                    statusArea.innerText = "Status: KONEKSI SUKSES, TAPI DATA KOSONG (0 Item).";
+                    statusArea.className = "text-red-500 font-bold";
+                    log("❌ Collection 'themes' ditemukan tapi kosong.", "text-red-500");
+                    return;
+                }
+
+                const total = querySnapshot.size;
+                statusArea.innerText = `Status: SUKSES! Ditemukan ${total} Tema.`;
+                statusArea.className = "text-green-500 font-bold";
+                log(`✅ Berhasil mengambil ${total} dokumen.`, "text-green-400");
+
+                // Ambil 1 data pertama untuk dicek struktur kuncinya
+                let firstDoc = null;
+                querySnapshot.forEach((doc) => {
+                    if(!firstDoc) firstDoc = doc.data();
+                });
+
+                log("Menampilkan struktur data item pertama...", "text-yellow-500");
+                previewArea.innerText = JSON.stringify(firstDoc, null, 4);
+
+                // Analisa Masalah Umum
+                log("--- ANALISA KOLOM ---", "text-white mt-4");
+                
+                // Cek Title
+                if(firstDoc.title) log("✅ Kolom 'title' ditemukan.", "text-green-500");
+                else if(firstDoc['title ']) log("⚠️ PERINGATAN: Kolom 'title' pakai spasi ('title '). Kode harus disesuaikan.", "text-orange-400");
+                else log("❌ Kolom title tidak ditemukan/salah nama.", "text-red-500");
+
+                // Cek Price
+                if(firstDoc.price_real) log("✅ Kolom 'price_real' (underscore) aman.", "text-green-500");
+                else if(firstDoc['price-real']) log("⚠️ PERINGATAN: Kolom pakai strip ('price-real'). Kode web harus diubah!", "text-red-400");
+                else log("❌ Kolom harga tidak ditemukan.", "text-red-500");
+
+            } catch (e) {
+                statusArea.innerText = "Status: ERROR FATAL";
+                statusArea.className = "text-red-600 font-bold bg-white p-2";
+                log(`❌ Error Message: ${e.message}`, "text-red-500");
+                if(e.message.includes("permission")) {
+                    log("💡 SOLUSI: Cek tab 'Rules' di Firebase Console, pastikan 'allow read: if true'", "text-white");
+                }
+            }
+        }
+
+        runDiagnosa();
+    </script>
+</body>
+</html>
