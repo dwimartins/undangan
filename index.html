@@ -25,15 +25,16 @@
         <div class="px-4 py-3 flex justify-between items-center max-w-md mx-auto">
             <div>
                 <h1 class="font-bold text-lg text-slate-900">UndanganWeb</h1>
-                <p class="text-[10px]" 
-                   :class="status === 'Siap' ? 'text-green-600' : 'text-orange-500'" 
-                   x-text="status"></p>
+                <p class="text-[10px] text-slate-500">Mode Preview (Offline)</p>
+            </div>
+            <div class="bg-slate-100 p-2 rounded-full">
+               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
             </div>
         </div>
 
         <div class="px-4 pb-3 max-w-md mx-auto mt-2">
-            <input type="text" x-model="search" placeholder="Cari tema (Jawa, Floral...)" 
-                class="w-full bg-slate-100 text-sm py-2 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="text" x-model="search" placeholder="Cari tema..." 
+                class="w-full bg-slate-100 text-sm py-2 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
         </div>
 
         <div class="flex overflow-x-auto gap-2 px-4 pb-3 hide-scroll max-w-md mx-auto">
@@ -46,31 +47,17 @@
         </div>
     </div>
 
-    <div class="h-44"></div> <div x-show="loading" class="px-4 grid grid-cols-2 gap-3 max-w-md mx-auto">
-        <template x-for="i in 4">
-            <div class="bg-white p-2 rounded-xl shadow-sm border border-slate-100 animate-pulse">
-                <div class="bg-slate-200 h-32 rounded-lg mb-2"></div>
-                <div class="bg-slate-200 h-3 w-3/4 rounded mb-1"></div>
-                <div class="bg-slate-200 h-3 w-1/2 rounded"></div>
-            </div>
-        </template>
-    </div>
+    <div class="h-44"></div> 
 
-    <div x-show="errorMsg" x-cloak class="px-4 text-center mt-4">
-        <div class="bg-red-50 text-red-600 p-4 rounded-xl border border-red-200 text-xs">
-            <p class="font-bold">Terjadi Kesalahan</p>
-            <p x-text="errorMsg"></p>
-        </div>
-    </div>
-
-    <div x-show="!loading" x-cloak class="px-3 grid grid-cols-2 gap-3 max-w-md mx-auto transition-opacity duration-500">
+    <div class="px-3 grid grid-cols-2 gap-3 max-w-md mx-auto transition-opacity duration-500">
         <template x-for="item in filteredProducts" :key="item.id">
             <div @click="openModal(item)" class="bg-white p-2.5 rounded-xl shadow-sm border border-slate-100 active:scale-95 transition-transform cursor-pointer">
+                
                 <div class="relative overflow-hidden rounded-lg bg-slate-100 aspect-[3/4] mb-2">
-                    <img :src="getImageUrl(item.folder_id, 'thumb')" 
-                         class="w-full h-full object-cover transition-opacity duration-300" 
-                         onload="this.style.opacity=1" 
-                         style="opacity:0"> <div class="absolute top-1 left-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow">
+                    <img :src="'https://placehold.co/300x400/e2e8f0/334155?text=' + item.title" 
+                         class="w-full h-full object-cover">
+                    
+                    <div class="absolute top-1 left-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow">
                         -<span x-text="Math.round(((item.price_fake - item.price_real)/item.price_fake)*100)"></span>%
                     </div>
                 </div>
@@ -82,21 +69,17 @@
                 </div>
             </div>
         </template>
-        
-        <div x-show="filteredProducts.length === 0" class="col-span-2 text-center py-10 text-slate-400 text-sm">
-            Tidak ada tema yang cocok.
-        </div>
     </div>
 
     <div x-show="detailOpen" x-cloak 
-         class="fixed inset-0 bg-white z-50 overflow-y-auto max-w-md mx-auto flex flex-col animate-fade-in-up">
+         class="fixed inset-0 bg-white z-50 overflow-y-auto max-w-md mx-auto flex flex-col">
         
-        <button @click="closeModal()" class="absolute top-4 left-4 z-50 bg-black/30 text-white p-2 rounded-full backdrop-blur hover:bg-black/50 transition">
+        <button @click="closeModal()" class="absolute top-4 left-4 z-50 bg-black/30 text-white p-2 rounded-full backdrop-blur">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
         </button>
 
         <div class="h-[55vh] bg-slate-200 relative shrink-0">
-             <img :src="getImageUrl(selectedItem?.folder_id, 'detail')" class="w-full h-full object-cover">
+             <img :src="'https://placehold.co/400x800/e2e8f0/334155?text=' + selectedItem?.title + '+Detail'" class="w-full h-full object-cover">
         </div>
         
         <div class="flex-1 p-6 -mt-6 bg-white rounded-t-3xl relative shadow-[0_-5px_20px_rgba(0,0,0,0.1)]">
@@ -112,100 +95,66 @@
                 <p class="text-sm text-slate-600 leading-relaxed whitespace-pre-line" x-text="selectedItem?.description"></p>
             </div>
             
-            <div class="h-20"></div> </div>
+            <div class="h-24"></div> 
+        </div>
 
         <div class="fixed bottom-0 w-full max-w-md bg-white border-t p-4 flex gap-3 z-50">
-            <a :href="selectedItem?.link" target="_blank" class="flex-1 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl text-center text-sm">Preview</a>
+            <a :href="selectedItem?.link" target="_blank" class="flex-1 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl text-center text-sm flex justify-center items-center">Preview</a>
             <button class="flex-[2] bg-blue-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-200 text-sm">Pesan Sekarang</button>
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-
-        // CONFIG KITA
-        const firebaseConfig = {
-            apiKey: "AIzaSyDq6LjlUFRDm5CqGSqVLiJ9gItIyw71bAU",
-            authDomain: "db-katalog.firebaseapp.com",
-            projectId: "db-katalog",
-            storageBucket: "db-katalog.firebasestorage.app",
-            messagingSenderId: "597535674259",
-            appId: "1:597535674259:web:0577885c617f623bb82266"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        // --- PENYEMBUH RACE CONDITION ---
-        // Kita gunakan event listener 'alpine:init'.
-        // Ini memastikan kode kita dijalankan TEPAT saat Alpine siap.
+    <script>
         document.addEventListener('alpine:init', () => {
-            
             Alpine.data('katalog', () => ({
-                products: [],
-                loading: true,
                 search: '',
                 activeCategory: 'Semua',
-                categories: ['Semua', 'Wedding', 'Khitan', 'Ultah', 'Acara Formal'],
+                categories: ['Semua', 'Wedding', 'Khitan'],
                 detailOpen: false,
                 selectedItem: null,
-                status: 'Menghubungkan...',
-                errorMsg: null,
-
-                async init() { // Alpine otomatis jalankan fungsi 'init()'
-                    console.log("🚀 Memulai koneksi Firebase...");
-                    try {
-                        const querySnapshot = await getDocs(collection(db, "themes"));
-                        
-                        let data = [];
-                        querySnapshot.forEach((doc) => {
-                            data.push(doc.data());
-                        });
-                        
-                        this.products = data;
-                        this.loading = false;
-                        this.status = "Siap"; // Ubah indikator jadi hijau
-                        console.log(`✅ Berhasil! ${data.length} tema termuat.`);
-
-                    } catch (e) {
-                        console.error("❌ Error:", e);
-                        this.status = "Error";
-                        this.loading = false;
-                        this.errorMsg = e.message; 
+                
+                // DATA DUMMY (Langsung ditanam disini)
+                products: [
+                    {
+                        id: '1',
+                        title: 'Jawa Klasik Elegan',
+                        category: 'Wedding',
+                        price_real: 49000,
+                        price_fake: 99000,
+                        description: 'Undangan nuansa adat Jawa dengan sentuhan modern.',
+                        link: '#'
+                    },
+                    {
+                        id: '2',
+                        title: 'Floral Blue Modern',
+                        category: 'Wedding',
+                        price_real: 69000,
+                        price_fake: 129000,
+                        description: 'Tema bunga biru yang sangat aesthetic dan kekinian.',
+                        link: '#'
+                    },
+                    {
+                        id: '3',
+                        title: 'Khitan Ceria',
+                        category: 'Khitan',
+                        price_real: 35000,
+                        price_fake: 70000,
+                        description: 'Tema anak-anak yang ceria untuk acara syukuran khitan.',
+                        link: '#'
                     }
-                },
+                ],
 
                 get filteredProducts() {
-                    if (this.products.length === 0) return [];
-                    
                     return this.products.filter(item => {
                         const catMatch = this.activeCategory === 'Semua' ? true : 
-                             (item.category && item.category.toLowerCase().includes(this.activeCategory.toLowerCase()));
-                        
-                        const judul = item.title ? item.title.toLowerCase() : "";
-                        const searchMatch = judul.includes(this.search.toLowerCase());
-                        
+                             item.category.includes(this.activeCategory);
+                        const searchMatch = item.title.toLowerCase().includes(this.search.toLowerCase());
                         return catMatch && searchMatch;
                     });
                 },
 
-                getImageUrl(folderId, type) {
-                    // Placeholder dulu ya (karena kita belum setup ImageKit)
-                    // Nanti kita ganti link ini
-                    return `https://placehold.co/400x600/e2e8f0/334155?text=${folderId}`;
-                },
-
-                openModal(item) { 
-                    this.selectedItem = item; 
-                    this.detailOpen = true; 
-                    document.body.style.overflow = 'hidden'; 
-                },
-                
-                closeModal() { 
-                    this.detailOpen = false; 
-                    document.body.style.overflow = 'auto'; 
-                }
+                openModal(item) { this.selectedItem = item; this.detailOpen = true; document.body.style.overflow = 'hidden'; },
+                closeModal() { this.detailOpen = false; document.body.style.overflow = 'auto'; }
             }));
         });
     </script>
