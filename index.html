@@ -6,93 +6,117 @@
     <title>UndanganWeb - Katalog Digital</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-        .snap-x { scroll-snap-type: x mandatory; }
-        .snap-center { scroll-snap-align: center; }
-        [x-cloak] { display: none !important; } /* Sembunyikan elemen sebelum Alpine siap */
+        [x-cloak] { display: none !important; }
     </style>
 </head>
 
-<body x-data="setupKatalog()" x-init="initData()" class="text-slate-800">
+<body x-data="katalog" class="text-slate-800 pb-24">
 
-    <div x-show="!detailOpen" class="pb-24 transition-opacity duration-300">
-        <div class="fixed top-0 w-full bg-white/90 backdrop-blur-md z-40 shadow-sm border-b border-slate-100">
-            <div class="px-4 py-3 flex justify-between items-center max-w-md mx-auto">
-                <div>
-                    <h1 class="font-bold text-lg text-slate-900">UndanganWeb</h1>
-                    <p class="text-xs text-slate-500">Katalog Digital Terlengkap</p>
-                </div>
-                <div class="text-[10px] px-2 py-1 rounded bg-slate-100 border" 
-                     :class="status === 'Siap' ? 'text-green-600 border-green-200' : 'text-orange-500 border-orange-200'"
-                     x-text="status"></div>
-            </div>
-
-            <div class="px-4 pb-3 max-w-md mx-auto">
-                <input type="text" x-model="search" placeholder="Cari tema..." 
-                    class="w-full bg-slate-100 text-sm py-2 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-
-            <div class="flex overflow-x-auto gap-2 px-4 pb-3 hide-scroll max-w-md mx-auto">
-                <template x-for="cat in categories" :key="cat">
-                    <button @click="activeCategory = cat" 
-                        :class="activeCategory === cat ? 'bg-slate-900 text-white' : 'bg-white border border-slate-200 text-slate-600'"
-                        class="px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap"
-                        x-text="cat"></button>
-                </template>
+    <div class="fixed top-0 w-full bg-white/95 backdrop-blur z-40 shadow-sm border-b border-slate-100">
+        <div class="px-4 py-3 flex justify-between items-center max-w-md mx-auto">
+            <div>
+                <h1 class="font-bold text-lg text-slate-900">UndanganWeb</h1>
+                <p class="text-[10px]" 
+                   :class="status === 'Siap' ? 'text-green-600' : 'text-orange-500'" 
+                   x-text="status"></p>
             </div>
         </div>
 
-        <div class="h-40"></div>
-
-        <div x-show="errorMsg" class="px-4 text-center mt-10">
-            <div class="bg-red-50 text-red-600 p-4 rounded-xl border border-red-200 text-sm">
-                <p class="font-bold mb-1">Gagal Memuat Data</p>
-                <p x-text="errorMsg"></p>
-                <p class="mt-2 text-xs text-slate-500">Cek Firestore Rules atau Koneksi Internet.</p>
-            </div>
+        <div class="px-4 pb-3 max-w-md mx-auto mt-2">
+            <input type="text" x-model="search" placeholder="Cari tema (Jawa, Floral...)" 
+                class="w-full bg-slate-100 text-sm py-2 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
 
-        <div x-show="loading" class="px-4 grid grid-cols-2 gap-3 max-w-md mx-auto mt-4">
-            <template x-for="i in 4">
-                <div class="bg-white p-2 rounded-xl shadow-sm border border-slate-100 animate-pulse">
-                    <div class="bg-slate-200 h-32 rounded-lg mb-3"></div>
-                    <div class="bg-slate-200 h-3 w-3/4 rounded mb-2"></div>
-                </div>
-            </template>
-        </div>
-
-        <div x-show="!loading" class="px-3 grid grid-cols-2 gap-3 max-w-md mx-auto">
-            <template x-for="item in filteredProducts" :key="item.id">
-                <div @click="openModal(item)" class="bg-white p-2.5 rounded-xl shadow-sm border border-slate-100 active:scale-95 transition-transform">
-                    <div class="relative overflow-hidden rounded-lg bg-slate-100 aspect-[3/4] mb-2">
-                        <img :src="getImageUrl(item.folder_id, 'thumb')" class="w-full h-full object-cover">
-                    </div>
-                    <h3 class="text-xs font-bold text-slate-800 truncate" x-text="item.title"></h3>
-                    <p class="text-sm font-bold text-blue-600" x-text="'Rp' + (item.price_real/1000) + 'k'"></p>
-                </div>
+        <div class="flex overflow-x-auto gap-2 px-4 pb-3 hide-scroll max-w-md mx-auto">
+            <template x-for="cat in categories" :key="cat">
+                <button @click="activeCategory = cat" 
+                    :class="activeCategory === cat ? 'bg-slate-900 text-white' : 'bg-white border border-slate-200 text-slate-600'"
+                    class="px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors"
+                    x-text="cat"></button>
             </template>
         </div>
     </div>
 
-    <div x-show="detailOpen" x-cloak class="fixed inset-0 bg-white z-50 overflow-y-auto max-w-md mx-auto flex flex-col">
-        <button @click="closeModal()" class="absolute top-4 left-4 z-50 bg-black/20 text-white p-2 rounded-full backdrop-blur">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-        </button>
+    <div class="h-44"></div> <div x-show="loading" class="px-4 grid grid-cols-2 gap-3 max-w-md mx-auto">
+        <template x-for="i in 4">
+            <div class="bg-white p-2 rounded-xl shadow-sm border border-slate-100 animate-pulse">
+                <div class="bg-slate-200 h-32 rounded-lg mb-2"></div>
+                <div class="bg-slate-200 h-3 w-3/4 rounded mb-1"></div>
+                <div class="bg-slate-200 h-3 w-1/2 rounded"></div>
+            </div>
+        </template>
+    </div>
+
+    <div x-show="errorMsg" x-cloak class="px-4 text-center mt-4">
+        <div class="bg-red-50 text-red-600 p-4 rounded-xl border border-red-200 text-xs">
+            <p class="font-bold">Terjadi Kesalahan</p>
+            <p x-text="errorMsg"></p>
+        </div>
+    </div>
+
+    <div x-show="!loading" x-cloak class="px-3 grid grid-cols-2 gap-3 max-w-md mx-auto transition-opacity duration-500">
+        <template x-for="item in filteredProducts" :key="item.id">
+            <div @click="openModal(item)" class="bg-white p-2.5 rounded-xl shadow-sm border border-slate-100 active:scale-95 transition-transform cursor-pointer">
+                <div class="relative overflow-hidden rounded-lg bg-slate-100 aspect-[3/4] mb-2">
+                    <img :src="getImageUrl(item.folder_id, 'thumb')" 
+                         class="w-full h-full object-cover transition-opacity duration-300" 
+                         onload="this.style.opacity=1" 
+                         style="opacity:0"> <div class="absolute top-1 left-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow">
+                        -<span x-text="Math.round(((item.price_fake - item.price_real)/item.price_fake)*100)"></span>%
+                    </div>
+                </div>
+
+                <h3 class="text-xs font-bold text-slate-800 truncate" x-text="item.title"></h3>
+                <div class="flex items-end gap-1 mt-1">
+                    <p class="text-sm font-bold text-blue-600" x-text="'Rp' + (item.price_real/1000) + 'k'"></p>
+                    <p class="text-[10px] text-slate-400 line-through mb-0.5" x-text="'Rp' + (item.price_fake/1000) + 'k'"></p>
+                </div>
+            </div>
+        </template>
         
-        <div class="h-[60vh] bg-slate-200">
+        <div x-show="filteredProducts.length === 0" class="col-span-2 text-center py-10 text-slate-400 text-sm">
+            Tidak ada tema yang cocok.
+        </div>
+    </div>
+
+    <div x-show="detailOpen" x-cloak 
+         class="fixed inset-0 bg-white z-50 overflow-y-auto max-w-md mx-auto flex flex-col animate-fade-in-up">
+        
+        <button @click="closeModal()" class="absolute top-4 left-4 z-50 bg-black/30 text-white p-2 rounded-full backdrop-blur hover:bg-black/50 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        </button>
+
+        <div class="h-[55vh] bg-slate-200 relative shrink-0">
              <img :src="getImageUrl(selectedItem?.folder_id, 'detail')" class="w-full h-full object-cover">
         </div>
         
-        <div class="flex-1 p-6 -mt-6 bg-white rounded-t-3xl relative">
-            <h1 class="text-2xl font-bold" x-text="selectedItem?.title"></h1>
-            <p class="text-xl font-bold text-green-600 mt-2" x-text="'Rp ' + (selectedItem?.price_real || 0).toLocaleString()"></p>
-            <p class="text-slate-500 text-sm mt-4 leading-relaxed" x-text="selectedItem?.description"></p>
+        <div class="flex-1 p-6 -mt-6 bg-white rounded-t-3xl relative shadow-[0_-5px_20px_rgba(0,0,0,0.1)]">
+            <div class="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-6"></div>
+            
+            <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100" x-text="selectedItem?.category"></span>
+            
+            <h1 class="text-2xl font-bold text-slate-900 mt-3" x-text="selectedItem?.title"></h1>
+            <p class="text-xl font-bold text-green-600 mt-1" x-text="'Rp ' + (selectedItem?.price_real || 0).toLocaleString('id-ID')"></p>
+            
+            <div class="mt-6 border-t pt-4">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Deskripsi</p>
+                <p class="text-sm text-slate-600 leading-relaxed whitespace-pre-line" x-text="selectedItem?.description"></p>
+            </div>
+            
+            <div class="h-20"></div> </div>
+
+        <div class="fixed bottom-0 w-full max-w-md bg-white border-t p-4 flex gap-3 z-50">
+            <a :href="selectedItem?.link" target="_blank" class="flex-1 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl text-center text-sm">Preview</a>
+            <button class="flex-[2] bg-blue-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-200 text-sm">Pesan Sekarang</button>
         </div>
     </div>
 
@@ -100,6 +124,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
+        // CONFIG KITA
         const firebaseConfig = {
             apiKey: "AIzaSyDq6LjlUFRDm5CqGSqVLiJ9gItIyw71bAU",
             authDomain: "db-katalog.firebaseapp.com",
@@ -109,36 +134,30 @@
             appId: "1:597535674259:web:0577885c617f623bb82266"
         };
 
-        // Init Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- PENYELAMAT: GLOBAL FUNCTION ---
-        // Kita tempel fungsi ini ke 'window' supaya HTML bisa baca
-        window.setupKatalog = function() {
-            return {
+        // --- PENYEMBUH RACE CONDITION ---
+        // Kita gunakan event listener 'alpine:init'.
+        // Ini memastikan kode kita dijalankan TEPAT saat Alpine siap.
+        document.addEventListener('alpine:init', () => {
+            
+            Alpine.data('katalog', () => ({
                 products: [],
                 loading: true,
                 search: '',
                 activeCategory: 'Semua',
-                categories: ['Semua', 'Wedding', 'Khitan', 'Ultah'],
+                categories: ['Semua', 'Wedding', 'Khitan', 'Ultah', 'Acara Formal'],
                 detailOpen: false,
                 selectedItem: null,
                 status: 'Menghubungkan...',
                 errorMsg: null,
 
-                async initData() {
-                    console.log("Memulai ambil data...");
+                async init() { // Alpine otomatis jalankan fungsi 'init()'
+                    console.log("🚀 Memulai koneksi Firebase...");
                     try {
                         const querySnapshot = await getDocs(collection(db, "themes"));
                         
-                        if (querySnapshot.empty) {
-                            this.status = "Data Kosong";
-                            this.errorMsg = "Database berhasil connect, tapi isinya kosong (0 data). Coba upload ulang via Admin.";
-                            this.loading = false;
-                            return;
-                        }
-
                         let data = [];
                         querySnapshot.forEach((doc) => {
                             data.push(doc.data());
@@ -146,35 +165,49 @@
                         
                         this.products = data;
                         this.loading = false;
-                        this.status = "Siap";
-                        console.log("Data berhasil diambil:", data.length);
+                        this.status = "Siap"; // Ubah indikator jadi hijau
+                        console.log(`✅ Berhasil! ${data.length} tema termuat.`);
 
                     } catch (e) {
-                        console.error("Error Firebase:", e);
+                        console.error("❌ Error:", e);
                         this.status = "Error";
                         this.loading = false;
-                        // Tampilkan pesan error di layar biar kamu tau penyebabnya
                         this.errorMsg = e.message; 
                     }
                 },
 
                 get filteredProducts() {
+                    if (this.products.length === 0) return [];
+                    
                     return this.products.filter(item => {
                         const catMatch = this.activeCategory === 'Semua' ? true : 
                              (item.category && item.category.toLowerCase().includes(this.activeCategory.toLowerCase()));
-                        const searchMatch = item.title.toLowerCase().includes(this.search.toLowerCase());
+                        
+                        const judul = item.title ? item.title.toLowerCase() : "";
+                        const searchMatch = judul.includes(this.search.toLowerCase());
+                        
                         return catMatch && searchMatch;
                     });
                 },
 
                 getImageUrl(folderId, type) {
+                    // Placeholder dulu ya (karena kita belum setup ImageKit)
+                    // Nanti kita ganti link ini
                     return `https://placehold.co/400x600/e2e8f0/334155?text=${folderId}`;
                 },
 
-                openModal(item) { this.selectedItem = item; this.detailOpen = true; },
-                closeModal() { this.detailOpen = false; }
-            }
-        }
+                openModal(item) { 
+                    this.selectedItem = item; 
+                    this.detailOpen = true; 
+                    document.body.style.overflow = 'hidden'; 
+                },
+                
+                closeModal() { 
+                    this.detailOpen = false; 
+                    document.body.style.overflow = 'auto'; 
+                }
+            }));
+        });
     </script>
 </body>
 </html>
