@@ -135,7 +135,6 @@
             <div class="w-full aspect-square relative overflow-hidden">
                 <div id="detail-slider" class="flex overflow-x-auto snap-x snap-mandatory hide-scroll h-full items-center px-4 gap-3">
                     <!-- Images Injected Here -->
-                    <!-- Logic: Image width < 100% to allow peeking -->
                 </div>
             </div>
             
@@ -159,6 +158,11 @@
                     <span id="detail-price-real" class="text-lg font-bold text-wa-light"></span>
                     <span id="detail-price-fake" class="text-sm text-wa-gray line-through"></span>
                 </div>
+
+                <!-- PREVIEW BUTTONS VARIANT -->
+                <div id="detail-preview-buttons" class="mt-6 flex flex-col gap-2.5">
+                    <!-- Tombol preview foto/animasi/no-foto akan muncul disini -->
+                </div>
             </div>
 
             <!-- Description -->
@@ -179,6 +183,7 @@
         <!-- Sticky Footer Action -->
         <div class="fixed bottom-0 w-full bg-wa-header border-t border-wa-divider p-3 z-50">
             <div class="max-w-md mx-auto flex gap-3">
+                <!-- Preview sudah pindah ke atas, jadi tombol ini bisa jadi opsi fallback atau shortcut ke default -->
                 <a id="detail-link-preview" href="#" target="_blank" class="flex-1 border border-wa-divider text-wa-teal font-medium py-3 rounded-full text-center text-sm hover:bg-[#2a373f] transition">
                     Lihat Demo
                 </a>
@@ -216,11 +221,9 @@
         let navigationStack = ['view-home'];
 
         function showView(viewId) {
-            // Sembunyikan semua view
             document.querySelectorAll('.view-section').forEach(el => {
                 el.classList.remove('view-active');
             });
-            // Tampilkan view target
             document.getElementById(viewId).classList.add('view-active');
             window.scrollTo(0,0);
         }
@@ -232,13 +235,8 @@
 
         function goBack() {
             if (navigationStack.length > 1) {
-                navigationStack.pop(); // Buang view sekarang
+                navigationStack.pop(); 
                 const prevView = navigationStack[navigationStack.length - 1];
-                
-                // Khusus jika balik ke kategori, kita perlu tau kategori apa
-                // Tapi untuk simpelnya, sistem stack ini mengandalkan ID view
-                // Jika user dari Detail -> Kategori, view ID nya 'view-category'
-                // Karena konten view-category masih static (terakhir dirender), aman.
                 showView(prevView);
             } else {
                 goHome();
@@ -270,7 +268,6 @@
                     };
                 });
 
-                // Group by Tier
                 groupedProducts = {};
                 allProducts.forEach(p => {
                     const tier = p.tier;
@@ -292,17 +289,13 @@
             const container = document.getElementById('tier-list-container');
             container.innerHTML = '';
 
-            // Loop sesuai urutan tier yg diinginkan
             TIER_ORDER.forEach(tier => {
                 const products = groupedProducts[tier];
                 if (!products || products.length === 0) return;
 
-                // Ambil 3 produk saja untuk preview
                 const previewProducts = products.slice(0, 3);
-
-                // Buat Section HTML
                 const section = document.createElement('div');
-                section.className = "bg-wa-header mb-2 py-4 shadow-sm"; // Card style container per tier
+                section.className = "bg-wa-header mb-2 py-4 shadow-sm"; 
                 
                 let cardsHtml = '';
                 previewProducts.forEach(item => {
@@ -362,21 +355,62 @@
                 container.appendChild(card);
             });
 
-            // Navigasi
             showView('view-category');
             navigationStack.push('view-category');
         }
 
         // RENDER HALAMAN DETAIL (VIEW 4)
         function openDetail(item) {
-            // Set Text
             document.getElementById('detail-title').innerText = item.title;
             document.getElementById('detail-price-real').innerText = 'Rp ' + item.price_real.toLocaleString('id-ID');
             document.getElementById('detail-price-fake').innerText = 'Rp ' + item.price_fake.toLocaleString('id-ID');
             document.getElementById('detail-desc').innerText = item.description;
             document.getElementById('detail-link-preview').href = item.link;
 
-            // Set Variants
+            // --- 1. SET BUTTONS PREVIEW BERDASARKAN VARIAN ---
+            const previewContainer = document.getElementById('detail-preview-buttons');
+            previewContainer.innerHTML = '';
+
+            const baseUrl = item.link.replace(/\/$/, ""); // Hapus trailing slash
+            
+            // Urutan prioritas tombol
+            const sortOrder = ['foto', 'animasi', 'no-foto'];
+            const sortedVariants = (item.variants || []).sort((a,b) => sortOrder.indexOf(a) - sortOrder.indexOf(b));
+
+            // Logic: Jika varian kosong, atau cuma 1 varian, tampilkan tombol default ke link utama
+            if (sortedVariants.length === 0) {
+                 createPreviewButton(previewContainer, item.link, "Preview Undangan", "default");
+            } else {
+                sortedVariants.forEach(variant => {
+                    let url = item.link;
+                    let label = "Preview";
+                    let iconType = "default";
+                    
+                    if (variant === 'foto') {
+                        url = item.link; 
+                        label = "Preview Mode Foto";
+                        iconType = "camera";
+                    } else if (variant === 'animasi') {
+                        // Jika ada varian foto juga, maka link animasi pakai slug. 
+                        // Jika tidak (cuma animasi), pakai link utama (asumsi link di db sudah benar).
+                        if(sortedVariants.length > 1) url = baseUrl + "-animasi";
+                        else url = item.link;
+
+                        label = "Preview Mode Animasi";
+                        iconType = "play";
+                    } else if (variant === 'no-foto') {
+                        if(sortedVariants.length > 1) url = baseUrl + "-tanpa-foto";
+                        else url = item.link;
+
+                        label = "Preview Mode Tanpa Foto";
+                        iconType = "doc";
+                    }
+
+                    createPreviewButton(previewContainer, url, label, iconType);
+                });
+            }
+
+            // --- 2. SET CHIPS VARIAN ---
             const variantContainer = document.getElementById('detail-variants');
             variantContainer.innerHTML = '';
             if(item.variants && item.variants.length > 0) {
@@ -387,7 +421,7 @@
                 variantContainer.innerHTML = '<span class="text-xs text-wa-gray italic">Tidak ada info fitur khusus</span>';
             }
 
-            // --- RENDER IMAGE SLIDER (PEEKING LOGIC) ---
+            // --- 3. RENDER IMAGE SLIDER ---
             const slider = document.getElementById('detail-slider');
             slider.innerHTML = '';
 
@@ -397,16 +431,10 @@
                 if (i <= 8) imgUrl = `${IMAGEKIT_BASE}/${item.folder_id}/${num}.png`;
                 else imgUrl = `${IMAGEKIT_BASE}/feature-service/${num}.png`;
 
-                imgUrl += "?tr=w-800"; // Optimasi
-
-                // TRICK PEEKING:
-                // Container Slider Full Width 1:1.
-                // Item didalamnya kita set width 85% (w-[85%]).
-                // Sisanya (15%) akan menampilkan potongan gambar berikutnya.
-                // aspect-[4/5] menjaga rasio gambar asli agar tidak gepeng, object-cover memotongnya agar rapi di dalam kotak.
+                imgUrl += "?tr=w-800"; 
                 
                 const slideItem = document.createElement('div');
-                slideItem.className = "snap-center shrink-0 w-[85%] h-full flex items-center justify-center bg-wa-bg rounded-lg overflow-hidden relative";
+                slideItem.className = "snap-center shrink-0 w-[85%] h-full flex items-center justify-center bg-wa-bg rounded-lg overflow-hidden relative border border-wa-divider/30";
                 
                 slideItem.innerHTML = `
                     <img src="${imgUrl}" class="w-full h-full object-cover" loading="${i===1?'eager':'lazy'}" onerror="this.src='https://placehold.co/400x500/333?text=Slide+Error'">
@@ -414,14 +442,41 @@
                 slider.appendChild(slideItem);
             }
 
-            // Reset Slider Position
             slider.scrollLeft = 0;
-
-            // Simpan data item ini di window object untuk fungsi WA
             window.currentItem = item;
 
             showView('view-detail');
             navigationStack.push('view-detail');
+        }
+
+        // Helper untuk membuat tombol preview
+        function createPreviewButton(container, url, text, iconType) {
+            let iconSvg = '';
+            if (iconType === 'camera') {
+                iconSvg = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>';
+            } else if (iconType === 'play') {
+                iconSvg = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+            } else if (iconType === 'doc') {
+                iconSvg = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>';
+            } else {
+                iconSvg = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>';
+            }
+
+            const btn = document.createElement('a');
+            btn.href = url;
+            btn.target = "_blank";
+            btn.className = "flex items-center gap-3 w-full bg-[#202c33] border border-wa-divider hover:border-wa-teal/50 hover:bg-[#2a373f] p-3 rounded-lg transition group shadow-sm active:scale-[0.99]";
+            btn.innerHTML = `
+                <div class="bg-wa-teal/10 p-2 rounded-lg text-wa-teal group-hover:bg-wa-teal group-hover:text-white transition-colors duration-300">
+                    ${iconSvg}
+                </div>
+                <div class="flex-1">
+                    <span class="block text-sm font-medium text-wa-light group-hover:text-white">${text}</span>
+                    <span class="block text-[10px] text-wa-gray">Klik untuk melihat live demo</span>
+                </div>
+                <svg class="w-4 h-4 text-wa-gray group-hover:text-wa-teal group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            `;
+            container.appendChild(btn);
         }
 
         function kirimPesanWA() {
