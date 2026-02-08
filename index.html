@@ -44,10 +44,15 @@
         .snap-x { scroll-snap-type: x mandatory; }
         .snap-center { scroll-snap-align: center; }
         
-        /* Transisi Halaman ala App */
+        /* Transisi Halaman */
         .view-section { display: none; animation: fadeIn 0.2s ease-out; }
         .view-active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Animasi Gallery */
+        #view-gallery { transition: transform 0.3s ease-in-out; }
+        .gallery-open { transform: translateY(0); }
+        .gallery-closed { transform: translateY(100%); }
     </style>
 </head>
 
@@ -131,16 +136,25 @@
         </div>
 
         <!-- 1:1 Image Slider -->
-        <div class="max-w-md mx-auto relative bg-black">
+        <div class="max-w-md mx-auto relative bg-black group">
             <div class="w-full aspect-square relative overflow-hidden">
                 <div id="detail-slider" class="flex overflow-x-auto snap-x snap-mandatory hide-scroll h-full items-center px-4 gap-3">
                     <!-- Inject via JS -->
                 </div>
             </div>
-            <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 z-10">
-                <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
-                <div class="w-1.5 h-1.5 rounded-full bg-white/40"></div>
+            
+            <!-- Progress Bar -->
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+                <div id="slider-progress" class="h-full bg-wa-teal transition-all duration-300 w-[10%]"></div>
             </div>
+
+            <!-- Navigation Arrows (Overlay) -->
+            <button onclick="scrollSlider(-1)" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 backdrop-blur p-3 rounded-full text-white hover:bg-black/60 transition opacity-0 group-hover:opacity-100 hidden md:block">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <button onclick="scrollSlider(1)" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 backdrop-blur p-3 rounded-full text-white hover:bg-black/60 transition shadow-lg animate-pulse md:animate-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
         </div>
 
         <!-- Content Body -->
@@ -186,6 +200,25 @@
         </div>
     </div>
 
+    <!-- =======================
+         VIEW 4: FULLSCREEN GALLERY
+    ======================== -->
+    <div id="view-gallery" class="fixed inset-0 z-[60] bg-black gallery-closed flex flex-col">
+        <!-- Close Button -->
+        <button onclick="closeGallery()" class="absolute top-4 right-4 z-50 bg-black/50 text-white p-3 rounded-full backdrop-blur-md">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        
+        <!-- Vertical Scroll Container -->
+        <div id="gallery-container" class="flex-1 overflow-y-auto hide-scroll snap-y snap-mandatory">
+            <!-- Images Injected Here -->
+        </div>
+        
+        <div class="absolute bottom-6 left-0 right-0 text-center pointer-events-none">
+            <span class="bg-black/50 text-white text-xs px-3 py-1 rounded-full backdrop-blur">Scroll Kebawah</span>
+        </div>
+    </div>
+
 
     <!-- SCRIPT LOGIC -->
     <script>
@@ -207,62 +240,48 @@
         const TIER_CONFIG = { "Starter": "🟢", "Bronze": "🟤", "Silver": "⚪", "Gold": "🟡", "Platinum": "🔵", "Diamond": "💎" };
 
         // --- SISTEM ROUTER & DEEP LINKING ---
-        // Listener Utama: Mendeteksi perubahan URL (Hash)
         window.addEventListener('hashchange', router);
 
         function router() {
             const hash = window.location.hash;
-            
-            // Default: Home
+            closeGallery(); // Tutup galeri jika pindah halaman
+
             if (!hash || hash === '#/') {
                 switchView('view-home');
                 return;
             }
-
-            // Route: Category (/#/category/Gold)
             if (hash.startsWith('#/category/')) {
-                // Decode URI Component penting kalau ada spasi (meski di tier jarang)
                 const tier = decodeURIComponent(hash.split('/')[2]);
                 renderCategoryView(tier);
                 switchView('view-category');
                 return;
             }
-
-            // Route: Detail (/#/detail/id123)
             if (hash.startsWith('#/detail/')) {
                 const id = hash.split('/')[2];
-                // Pastikan data sudah ada sebelum render
                 if (allProducts.length > 0) {
                     const item = allProducts.find(p => p.id === id);
                     if (item) {
                         renderDetailView(item);
                         switchView('view-detail');
                     } else {
-                        // Jika item tidak ketemu (link salah), balik ke home
                         window.location.hash = '#/';
                     }
-                } else {
-                    // Jika data belum load (akses langsung via link), tunggu data load dulu
-                    // Logic ini di-handle di 'loadData'
                 }
                 return;
             }
         }
 
-        // Fungsi Ganti Tampilan
         function switchView(viewId) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('view-active'));
             document.getElementById(viewId).classList.add('view-active');
             window.scrollTo(0,0);
         }
 
-        // Fungsi Navigasi (Tinggal ubah hash, router yang kerja)
         function navigateTo(path) {
             window.location.hash = path;
         }
 
         function goBack() {
-            // Gunakan history browser native
             window.history.back();
         }
 
@@ -288,7 +307,6 @@
                     };
                 });
 
-                // Grouping
                 groupedProducts = {};
                 allProducts.forEach(p => {
                     const tier = p.tier;
@@ -298,9 +316,6 @@
 
                 document.getElementById('home-loading').style.display = 'none';
                 renderHome();
-                
-                // JALANKAN ROUTER SETELAH DATA SIAP
-                // Ini penting untuk Deep Linking (misal buka link detail langsung)
                 router();
 
             } catch (error) {
@@ -332,8 +347,6 @@
                 previewProducts.forEach(item => {
                     const imgUrl = `${IMAGEKIT_BASE}/${item.folder_id}/01.png?tr=w-300`;
                     const price = 'Rp' + Math.floor(item.price_real / 1000) + 'k';
-                    
-                    // ONCLICK GANTI KE NAVIGATE
                     cardsHtml += `
                         <div onclick="navigateTo('#/detail/${item.id}')" class="cursor-pointer active:opacity-75 transition">
                             <div class="aspect-square rounded-lg overflow-hidden bg-wa-bg mb-2 border border-wa-divider/30">
@@ -379,11 +392,9 @@
             products.forEach(item => {
                 const imgUrl = `${IMAGEKIT_BASE}/${item.folder_id}/01.png?tr=w-400`;
                 const price = 'Rp' + Math.floor(item.price_real / 1000) + 'k';
-
                 const card = document.createElement('div');
                 card.className = "bg-wa-header p-2 rounded-lg border border-wa-divider active:scale-[0.98] transition cursor-pointer";
                 card.onclick = () => navigateTo(`#/detail/${item.id}`);
-                
                 card.innerHTML = `
                     <div class="aspect-square rounded overflow-hidden bg-wa-bg mb-2">
                         <img src="${imgUrl}" class="w-full h-full object-cover" loading="lazy">
@@ -401,7 +412,7 @@
             document.getElementById('detail-price-fake').innerText = 'Rp ' + item.price_fake.toLocaleString('id-ID');
             document.getElementById('detail-desc').innerText = item.description;
 
-            // PREVIEW BUTTONS
+            // Preview Buttons logic
             const previewContainer = document.getElementById('detail-preview-buttons');
             previewContainer.innerHTML = '';
             
@@ -430,21 +441,14 @@
                     let url = item.link;
                     let label = "Preview";
                     let iconType = "default";
-                    
-                    if (variant === 'foto') {
-                        url = item.link; label = "Versi Foto"; iconType = "camera";
-                    } else if (variant === 'animasi') {
-                        url = sortedVariants.length > 1 ? baseUrl + "-animasi" : item.link;
-                        label = "Versi Animasi"; iconType = "play";
-                    } else if (variant === 'no-foto') {
-                        url = sortedVariants.length > 1 ? baseUrl + "-tanpa-foto" : item.link;
-                        label = "Tanpa Foto"; iconType = "doc";
-                    }
+                    if (variant === 'foto') { url = item.link; label = "Versi Foto"; iconType = "camera"; }
+                    else if (variant === 'animasi') { url = sortedVariants.length > 1 ? baseUrl + "-animasi" : item.link; label = "Versi Animasi"; iconType = "play"; }
+                    else if (variant === 'no-foto') { url = sortedVariants.length > 1 ? baseUrl + "-tanpa-foto" : item.link; label = "Tanpa Foto"; iconType = "doc"; }
                     createPreviewButton(gridWrapper, url, label, iconType);
                 });
             }
 
-            // VARIANTS
+            // Variants Chips
             const variantContainer = document.getElementById('detail-variants');
             variantContainer.innerHTML = '';
             if(item.variants && item.variants.length > 0) {
@@ -455,21 +459,81 @@
                 variantContainer.innerHTML = '<span class="text-xs text-wa-gray italic">Tidak ada info fitur khusus</span>';
             }
 
-            // SLIDER
+            // --- IMAGE SLIDER LOGIC ---
             const slider = document.getElementById('detail-slider');
             slider.innerHTML = '';
+            window.currentGalleryItem = item; // Simpan untuk galeri fullscreen
+
+            // 1. Reset Posisi Slider (BUG FIX)
+            requestAnimationFrame(() => {
+                slider.scrollLeft = 0;
+            });
+
             for (let i = 1; i <= 10; i++) {
                 const num = String(i).padStart(2, '0');
                 let imgUrl = (i <= 8) ? `${IMAGEKIT_BASE}/${item.folder_id}/${num}.png` : `${IMAGEKIT_BASE}/feature-service/${num}.png`;
                 imgUrl += "?tr=w-800"; 
                 
                 const slideItem = document.createElement('div');
-                slideItem.className = "snap-center shrink-0 w-[85%] h-full flex items-center justify-center bg-wa-bg rounded-lg overflow-hidden relative border border-wa-divider/30";
+                slideItem.className = "snap-center shrink-0 w-[85%] h-full flex items-center justify-center bg-wa-bg rounded-lg overflow-hidden relative border border-wa-divider/30 cursor-pointer";
+                // Add Click Event to Open Gallery
+                slideItem.onclick = () => openGallery(); 
                 slideItem.innerHTML = `<img src="${imgUrl}" class="w-full h-full object-cover" loading="${i===1?'eager':'lazy'}" onerror="this.src='https://placehold.co/400x500/333?text=Slide+Error'">`;
                 slider.appendChild(slideItem);
             }
-            slider.scrollLeft = 0;
-            window.currentItem = item;
+
+            // 2. Attach Scroll Listener untuk Progress Bar
+            const progressBar = document.getElementById('slider-progress');
+            slider.onscroll = () => {
+                // Total scrollable width
+                const maxScroll = slider.scrollWidth - slider.clientWidth;
+                const scrollPct = (slider.scrollLeft / maxScroll) * 100;
+                // Min width 10%, max 100%
+                progressBar.style.width = Math.max(10, scrollPct) + "%";
+            };
+            // Reset bar
+            progressBar.style.width = "10%";
+        }
+
+        // --- GALLERY / LIGHTBOX FUNCTIONS ---
+        function openGallery() {
+            const item = window.currentGalleryItem;
+            if(!item) return;
+
+            const galleryView = document.getElementById('view-gallery');
+            const container = document.getElementById('gallery-container');
+            container.innerHTML = ''; // Bersihkan dulu
+
+            // Populate Vertical Images
+            for (let i = 1; i <= 10; i++) {
+                const num = String(i).padStart(2, '0');
+                let imgUrl = (i <= 8) ? `${IMAGEKIT_BASE}/${item.folder_id}/${num}.png` : `${IMAGEKIT_BASE}/feature-service/${num}.png`;
+                imgUrl += "?tr=w-1000"; // Resolusi lebih tinggi untuk detail
+
+                const wrapper = document.createElement('div');
+                wrapper.className = "w-full min-h-[50vh] snap-start mb-1"; // Snap per gambar
+                wrapper.innerHTML = `<img src="${imgUrl}" class="w-full h-auto object-contain" loading="lazy">`;
+                container.appendChild(wrapper);
+            }
+
+            galleryView.classList.remove('gallery-closed');
+            galleryView.classList.add('gallery-open');
+        }
+
+        function closeGallery() {
+            const galleryView = document.getElementById('view-gallery');
+            galleryView.classList.remove('gallery-open');
+            galleryView.classList.add('gallery-closed');
+        }
+
+        // --- SLIDER NAVIGATION (DESKTOP) ---
+        function scrollSlider(direction) {
+            const slider = document.getElementById('detail-slider');
+            const scrollAmount = slider.offsetWidth * 0.85; // Geser seukuran 1 slide
+            slider.scrollBy({
+                left: direction * scrollAmount,
+                behavior: 'smooth'
+            });
         }
 
         function createPreviewButton(container, url, text, iconType) {
