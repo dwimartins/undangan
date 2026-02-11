@@ -110,9 +110,10 @@
                     <svg class="w-4 h-4 text-wa-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
                     Cara Order
                 </button>
+                <!-- REVISI 1: Ikon Tombol Header Diganti (Sparkles/Bintang) -->
                 <button onclick="openSheet('animasi-sheet')" class="relative flex items-center gap-2 bg-[#2a373f] text-wa-light border border-wa-divider px-4 py-2 rounded-full text-xs font-medium shrink-0 hover:bg-[#374248] transition active:scale-95">
-                    <svg class="w-4 h-4 text-wa-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Animasi
+                    <svg class="w-4 h-4 text-wa-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                    Karakter
                     <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                 </button>
             </div>
@@ -330,29 +331,81 @@
         <button onclick="kirimPesanUmum()" class="mt-8 w-full bg-wa-teal py-3.5 rounded-xl text-sm font-bold text-white hover:bg-[#008f6f] transition shadow-lg">Chat Admin Sekarang</button>
     </div>
 
+    <!-- REVISI 2: Sheet Animasi (Pop-up) Dirombak Total -->
     <div id="backdrop-animasi-sheet" onclick="closeSheet('animasi-sheet')" class="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm backdrop-closed transition-opacity duration-300 hidden"></div>
     <div id="animasi-sheet" class="fixed bottom-0 left-0 right-0 z-[61] bg-[#202c33] rounded-t-[2rem] p-6 sheet-closed border-t border-wa-divider shadow-2xl max-w-md mx-auto max-h-[85vh] overflow-y-auto hide-scroll">
         <div class="w-12 h-1.5 bg-wa-divider rounded-full mx-auto mb-6"></div>
         <div class="text-center mb-6">
-            <span class="inline-block px-3 py-1 bg-red-500/10 text-red-400 text-[10px] font-bold rounded-full mb-2 border border-red-500/20">GRATIS UNTUK SEMUA PAKET</span>
-            <h3 class="text-xl font-bold text-white">🎬 Pilih Animasi Digital</h3>
-            <p class="text-xs text-wa-gray mt-1">Percantik undanganmu dengan karakter bergerak.</p>
+            <span class="inline-block px-3 py-1 bg-wa-teal/10 text-wa-teal text-[10px] font-bold rounded-full mb-3 border border-wa-teal/20 tracking-wider">SOLUSI TANPA FOTO</span>
+            <h3 class="text-xl font-bold text-white leading-tight">✨ Pilihan Avatar Karakter</h3>
+            <p class="text-xs text-wa-gray mt-2 leading-relaxed max-w-[280px] mx-auto">Ganti foto preweddingmu dengan ilustrasi karakter premium kami yang elegan dan estetik.</p>
         </div>
-        <div class="grid grid-cols-2 gap-3 mb-6">
-            <div class="bg-[#111b21] p-2 rounded-xl border border-wa-divider text-center group cursor-pointer hover:border-wa-teal transition">
-                <div class="aspect-square bg-[#202c33] rounded-lg mb-2 overflow-hidden"><img src="https://ik.imagekit.io/undangandigital/assets/anim-1.gif?tr=w-200" onerror="this.src='https://placehold.co/200x200/202c33/00a884?text=Bunga+Mekar'" class="w-full h-full object-cover"></div><span class="text-[10px] font-medium text-wa-light">Bunga Mekar</span>
+        
+        <!-- Grid Karakter -->
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <!-- Jawa -->
+            <div class="relative bg-[#111b21] rounded-2xl overflow-hidden border border-wa-divider group hover:border-wa-teal/50 transition duration-300">
+                <div class="h-36 w-full relative flex items-end justify-center pt-4">
+                    <!-- Background Glow Effect -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-wa-teal/20 via-transparent to-transparent opacity-50"></div>
+                    <div class="absolute bottom-0 w-24 h-24 bg-wa-teal/20 blur-2xl rounded-full"></div>
+                    <!-- Image -->
+                    <img src="https://ik.imagekit.io/undangandigital/popup-animasi/jawa.png?tr=w-300" 
+                         class="h-full object-contain relative z-10 drop-shadow-xl transition-transform duration-500 group-hover:scale-105" 
+                         alt="Adat Jawa">
+                </div>
+                <div class="p-3 bg-[#182329] border-t border-wa-divider relative z-20">
+                    <h4 class="text-xs font-bold text-wa-light text-center">Adat Jawa</h4>
+                </div>
             </div>
-            <div class="bg-[#111b21] p-2 rounded-xl border border-wa-divider text-center group cursor-pointer hover:border-wa-teal transition">
-                <div class="aspect-square bg-[#202c33] rounded-lg mb-2 overflow-hidden"><img src="https://ik.imagekit.io/undangandigital/assets/anim-2.gif?tr=w-200" onerror="this.src='https://placehold.co/200x200/202c33/00a884?text=Merpati'" class="w-full h-full object-cover"></div><span class="text-[10px] font-medium text-wa-light">Merpati Terbang</span>
+
+            <!-- Batak -->
+            <div class="relative bg-[#111b21] rounded-2xl overflow-hidden border border-wa-divider group hover:border-wa-teal/50 transition duration-300">
+                <div class="h-36 w-full relative flex items-end justify-center pt-4">
+                    <div class="absolute inset-0 bg-gradient-to-t from-red-500/10 via-transparent to-transparent opacity-50"></div>
+                    <div class="absolute bottom-0 w-24 h-24 bg-red-500/10 blur-2xl rounded-full"></div>
+                    <img src="https://ik.imagekit.io/undangandigital/popup-animasi/batak.png?tr=w-300" 
+                         class="h-full object-contain relative z-10 drop-shadow-xl transition-transform duration-500 group-hover:scale-105" 
+                         alt="Adat Batak">
+                </div>
+                <div class="p-3 bg-[#182329] border-t border-wa-divider relative z-20">
+                    <h4 class="text-xs font-bold text-wa-light text-center">Adat Batak</h4>
+                </div>
             </div>
-            <div class="bg-[#111b21] p-2 rounded-xl border border-wa-divider text-center group cursor-pointer hover:border-wa-teal transition">
-                <div class="aspect-square bg-[#202c33] rounded-lg mb-2 overflow-hidden"><img src="https://ik.imagekit.io/undangandigital/assets/anim-3.gif?tr=w-200" onerror="this.src='https://placehold.co/200x200/202c33/00a884?text=Sparkle'" class="w-full h-full object-cover"></div><span class="text-[10px] font-medium text-wa-light">Sparkle Gold</span>
+
+            <!-- Burgundy -->
+            <div class="relative bg-[#111b21] rounded-2xl overflow-hidden border border-wa-divider group hover:border-wa-teal/50 transition duration-300">
+                <div class="h-36 w-full relative flex items-end justify-center pt-4">
+                    <div class="absolute inset-0 bg-gradient-to-t from-rose-500/10 via-transparent to-transparent opacity-50"></div>
+                    <div class="absolute bottom-0 w-24 h-24 bg-rose-500/10 blur-2xl rounded-full"></div>
+                    <img src="https://ik.imagekit.io/undangandigital/popup-animasi/burgundy.png?tr=w-300" 
+                         class="h-full object-contain relative z-10 drop-shadow-xl transition-transform duration-500 group-hover:scale-105" 
+                         alt="Modern Burgundy">
+                </div>
+                <div class="p-3 bg-[#182329] border-t border-wa-divider relative z-20">
+                    <h4 class="text-xs font-bold text-wa-light text-center">Modern Burgundy</h4>
+                </div>
             </div>
-            <div class="bg-[#111b21] p-2 rounded-xl border border-wa-divider text-center group cursor-pointer hover:border-wa-teal transition">
-                <div class="aspect-square bg-[#202c33] rounded-lg mb-2 overflow-hidden"><img src="https://ik.imagekit.io/undangandigital/assets/anim-4.gif?tr=w-200" onerror="this.src='https://placehold.co/200x200/202c33/00a884?text=Kupu-kupu'" class="w-full h-full object-cover"></div><span class="text-[10px] font-medium text-wa-light">Kupu-kupu</span>
+
+            <!-- Ungu -->
+            <div class="relative bg-[#111b21] rounded-2xl overflow-hidden border border-wa-divider group hover:border-wa-teal/50 transition duration-300">
+                <div class="h-36 w-full relative flex items-end justify-center pt-4">
+                    <div class="absolute inset-0 bg-gradient-to-t from-purple-500/10 via-transparent to-transparent opacity-50"></div>
+                    <div class="absolute bottom-0 w-24 h-24 bg-purple-500/10 blur-2xl rounded-full"></div>
+                    <img src="https://ik.imagekit.io/undangandigital/popup-animasi/ungu.png?tr=w-300" 
+                         class="h-full object-contain relative z-10 drop-shadow-xl transition-transform duration-500 group-hover:scale-105" 
+                         alt="Modern Lilac">
+                </div>
+                <div class="p-3 bg-[#182329] border-t border-wa-divider relative z-20">
+                    <h4 class="text-xs font-bold text-wa-light text-center">Modern Lilac</h4>
+                </div>
             </div>
         </div>
-        <button onclick="alert('Mengarahkan ke halaman koleksi animasi...')" class="w-full bg-[#2a373f] py-3.5 rounded-xl text-sm font-bold text-wa-teal border border-wa-divider hover:bg-wa-divider transition">Lihat 50+ Koleksi Lainnya</button>
+
+        <button onclick="alert('Mengarahkan ke halaman koleksi karakter...')" class="w-full bg-[#2a373f] py-4 rounded-xl text-sm font-bold text-wa-teal border border-wa-divider hover:bg-wa-divider transition flex items-center justify-center gap-2 group">
+            Lihat 500+ Koleksi Lainnya
+            <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+        </button>
     </div>
 
     <div id="feature-backdrop" onclick="closeFeatureSheet()" class="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm backdrop-closed transition-opacity duration-300"></div>
