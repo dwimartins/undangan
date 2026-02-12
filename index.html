@@ -699,9 +699,15 @@
                     }
                     
                     let desc = d.description || '';
+                    
+                    // --- REVISI: PERBAIKAN REPLACE EMOJI ---
+                    // Bersihkan karakter unicode replacement jika ada
                     desc = desc.replace(/\n\uFFFD/g, '\n•').replace(/^\uFFFD/, '•');
                     desc = desc.replace(/\uFFFD/g, '-');
-                    desc = desc.replace(/Cek preview link dibawah ini:\s*\?+/gi, 'Cek preview link dibawah ini: 👇⤵️');
+                    
+                    // Regex baru: Menangani "di bawah" (spasi), "dibawah" (sambung), 
+                    // optional "ini", dan menangkap tanda tanya/error unicode di akhir.
+                    desc = desc.replace(/Cek preview link\s+(?:di\s*bawah|dibawah)(?:\s+ini)?\s*[:\s]*[\?]+/gi, 'Cek preview link di bawah ini: ⤵️👇');
 
                     return {
                         id: doc.id,
